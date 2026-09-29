@@ -1,3 +1,6 @@
+using BikeRental.Api.Data;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace BikeRental.Api
 {
