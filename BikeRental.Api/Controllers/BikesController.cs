@@ -1,4 +1,4 @@
-﻿using BikeRental.Api.Model;
+﻿using BikeRental.Api.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,7 +12,7 @@ namespace BikeRental.Api.Controllers
         public IActionResult GetBikes()
         {
             List<Bike> bikes = new List<Bike>();
-            bikes.Add(new Bike(1, "Jopo"));
+            bikes.Add(new Bike { Id = 1, Model = "Jopo" });
             return Ok(bikes);
         }
     }

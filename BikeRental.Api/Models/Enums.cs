@@ -1,6 +1,7 @@
 ﻿namespace BikeRental.Api.Models
 {
-    public class Enums
-    {
-    }
+
+    public enum BikeType { City, Mountain, Electric, Kids }
+
+    public enum UserRole { Customer, Admin }
 }

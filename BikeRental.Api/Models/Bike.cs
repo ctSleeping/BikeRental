@@ -1,14 +1,11 @@
-﻿namespace BikeRental.Api.Models
-{
-    public class Bike
-    {
-        public int Id { get; set; }
-        public string Model { get; set; }
+﻿namespace BikeRental.Api.Models;
 
-        public Bike(int id, string name)
-        {
-            Id = id;
-            Model = name;
-        }
-    }
+public class Bike
+{
+    public int Id { get; set; }
+    public string Model { get; set; } = string.Empty;
+    public BikeType Type { get; set; }
+    public decimal PricePerHour { get; set; }
+    public bool InMaintenance { get; set; }
+    public DateTime? DeletedUtc { get; set; }
 }
