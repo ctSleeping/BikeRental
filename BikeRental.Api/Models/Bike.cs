@@ -1,4 +1,4 @@
-﻿namespace BikeRental.Api.Model
+﻿namespace BikeRental.Api.Models
 {
     public class Bike
     {
