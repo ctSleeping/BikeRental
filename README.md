@@ -1,8 +1,8 @@
-# BikeRental — Back end -kurssin projekti (ASP.NET Core Web API)
+lo# BikeRental ï¿½ Back end -kurssin projekti (ASP.NET Core Web API)
 
 Back end -kurssin Bike Rental -projekti. Sovellus on toteutettu ASP.NET Core Web API:na, .NET 8.0.
 
-Ohjeet projektiin löytyvät kurssin Moodle-sivulta.
+Ohjeet projektiin lï¿½ytyvï¿½t kurssin Moodle-sivulta.
 
 ## Getting started
 
@@ -17,16 +17,16 @@ Fork it to your own account at `https://git.vamk.fi/<your_username>/<your_repo>`
 
 ### 3. Plan the project
 
-Ohjeet projektin toteutukseen löytyvät kurssin Moodle-sivulta. Suunnittele projektia ja tee jonkinlainen task lista mitä lähdet toteuttamaan.
+Ohjeet projektin toteutukseen lï¿½ytyvï¿½t kurssin Moodle-sivulta. Suunnittele projektia ja tee jonkinlainen task lista mitï¿½ lï¿½hdet toteuttamaan.
 
 ### 4. Implement the project
 
-Valitse taskilistalta tehtäviä. Toteuta feature branchin kautta ja tuo mainiin. 
-Tästä reposta löytyy esimerkkinä yksi feature branch joka on mergetty mainiin pull requestilla.
+Valitse taskilistalta tehtï¿½viï¿½. Toteuta feature branchin kautta ja tuo mainiin. 
+Tï¿½stï¿½ reposta lï¿½ytyy esimerkkinï¿½ yksi feature branch joka on mergetty mainiin pull requestilla.
 
 ### (Run tests)
 
-Valmiita testejä ei ole tarjolla. Voit kirjottaa projektille omat unit testit.
+Valmiita testejï¿½ ei ole tarjolla. Voit kirjottaa projektille omat unit testit.
 
 ### 5. Feature Branch, Commit, Push and Merge
 
