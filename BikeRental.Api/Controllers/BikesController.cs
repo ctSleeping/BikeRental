@@ -67,6 +67,47 @@ public class BikesController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = bike.Id }, ToDto(bike));
     }
 
+    // PUT /api/bikes/5
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult<BikeDto>> Update(int id, UpdateBikeDto dto)
+    {
+        var bike = await _context.Bikes
+            .FirstOrDefaultAsync(b => b.Id == id && b.DeletedUtc == null);
+
+        if (bike == null)
+        {
+            return NotFound();                   // 404
+        }
+
+        // Change the loaded object. EF notices the changes automatically.
+        bike.Model = dto.Model;
+        bike.Type = dto.Type!.Value;
+        bike.PricePerHour = dto.PricePerHour;
+        bike.InMaintenance = dto.InMaintenance;
+
+        await _context.SaveChangesAsync();       // writes only the changed columns
+
+        return Ok(ToDto(bike));                  // 200 + updated bike
+    }
+
+    // DELETE /api/bikes/5  (soft delete: the row stays in the database)
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var bike = await _context.Bikes
+            .FirstOrDefaultAsync(b => b.Id == id && b.DeletedUtc == null);
+
+        if (bike == null)
+        {
+            return NotFound();                   // 404
+        }
+
+        bike.DeletedUtc = DateTime.UtcNow;       // mark as deleted instead of removing
+        await _context.SaveChangesAsync();
+
+        return NoContent();                      // 204, success with no body
+    }
+
     // Converts a database Bike into the BikeDto the API returns.
     // Status is computed here, never stored.
     private static BikeDto ToDto(Bike bike)
