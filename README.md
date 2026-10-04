@@ -1,37 +1,50 @@
-lo# BikeRental � Back end -kurssin projekti (ASP.NET Core Web API)
+# BikeRental API
 
-Back end -kurssin Bike Rental -projekti. Sovellus on toteutettu ASP.NET Core Web API:na, .NET 8.0.
-
-Ohjeet projektiin l�ytyv�t kurssin Moodle-sivulta.
+Backend for a bike rental service, built as the project work for
+Backend Programming. ASP.NET Core Web API, .NET 8, Entity Framework Core 8 and SQLite.
 
 ## Getting started
 
-### 1. Fork this repository
+Requirements: .NET 8 SDK.
 
-Fork it to your own account at `https://git.vamk.fi/<your_username>/<your_repo>`.
+1. Install the EF Core tool (once per computer):
+```
+   dotnet tool install --global dotnet-ef --version 8.*
+```
+2. Go to the project folder and create the database:
+```
+   cd BikeRental.Api
+   dotnet ef database update-> this creates `bikerental.db` with 5 seed bikes.
+3. Start the API:
 
-### 2. Clone your fork
+   dotnet run  or press F5 in Visual Studio.
+4. Open Swagger at `http://localhost:5077/swagger`.
 
-    git clone https://git.vamk.fi/<your_username>/<your_repo>.git
-    cd BikeRental
+To reset the database, stop the API, delete `bikerental.db` and run `dotnet ef database update` again.
 
-### 3. Plan the project
+## Features
 
-Ohjeet projektin toteutukseen l�ytyv�t kurssin Moodle-sivulta. Suunnittele projektia ja tee jonkinlainen task lista mit� l�hdet toteuttamaan.
+- Bike CRUD: `GET /api/bikes`, `GET /api/bikes/{id}`, `POST /api/bikes`,
+  `PUT /api/bikes/{id}`, `DELETE /api/bikes/{id}`
+- Soft delete: deleted bikes get a `DeletedUtc` timestamp and are hidden,
+  but stay in the database
+- Paging: `GET /api/bikes?page=1&pageSize=10` always returns
+  `{ items, totalCount, page, pageSize, totalPages }`
+- Bike status (`Available` / `InMaintenance`) is computed, not stored
+- Validation with data annotations (400 for invalid input)
+- DTOs for all input and output; entities are never returned directly
+- Enums as strings in JSON (`"type": "City"`)
+- EF Core migrations and seed data
+- `BikeRental.http` covers every bike endpoint, including error cases
 
-### 4. Implement the project
+## Use of AI
 
-Valitse taskilistalta teht�vi�. Toteuta feature branchin kautta ja tuo mainiin. 
-T�st� reposta l�ytyy esimerkkin� yksi feature branch joka on mergetty mainiin pull requestilla.
+Claude was used primarily for assistance in building and understanding concepts with
+how to link each compononent together. Also helped with code itself and debugging
+when mistakes/errors were made.
 
-### (Run tests)
+## Known limitations
 
-Valmiita testej� ei ole tarjolla. Voit kirjottaa projektille omat unit testit.
-
-### 5. Feature Branch, Commit, Push and Merge
-
-Ohjeet kurssin sivulla.
-
-## License
-
-This repository is for educational use only.
+- Users, rentals and the rental rules (level 3) are not implemented.
+- Errors use the default ASP.NET format, without the `code` field.
+- No authentication (level 4).
