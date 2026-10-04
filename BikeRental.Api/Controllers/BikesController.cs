@@ -19,18 +19,41 @@ public class BikesController : ControllerBase
         _context = context;
     }
 
-    // GET /api/bikes
+    // GET /api/bikes?page=1&pageSize=10
     [HttpGet]
-    public async Task<ActionResult<List<BikeDto>>> GetAll()
+    public async Task<ActionResult<PagedResult<BikeDto>>> GetAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
     {
-        var bikes = await _context.Bikes
-            .Where(b => b.DeletedUtc == null)   // hide soft-deleted bikes
-            .OrderBy(b => b.Id)
+        // Fix nonsense values instead of crashing.
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 100) pageSize = 100;
+
+        // The base query: not-deleted bikes, in a fixed order.
+        // Nothing is sent to the database yet.
+        var query = _context.Bikes
+            .Where(b => b.DeletedUtc == null)
+            .OrderBy(b => b.Id);
+
+        // Query 1: how many bikes there are in total.
+        var totalCount = await query.CountAsync();
+
+        // Query 2: only the bikes on the requested page.
+        var bikes = await query
+            .Skip((page - 1) * pageSize)   // skip earlier pages
+            .Take(pageSize)                // take one page
             .ToListAsync();
 
-        var result = bikes.Select(ToDto).ToList();
+        var result = new PagedResult<BikeDto>
+        {
+            Items = bikes.Select(ToDto).ToList(),
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
 
-        return Ok(result);                       // 200 + JSON list
+        return Ok(result);                 // 200 + paging wrapper
     }
 
     // GET /api/bikes/5
