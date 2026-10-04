@@ -1,0 +1,75 @@
+@baseUrl = http://localhost:5077
+
+### 1. List bikes (paging wrapper, default page)
+GET {{baseUrl}}/api/bikes
+
+### 2. List bikes, page 1 with 2 per page
+GET {{baseUrl}}/api/bikes?page=1&pageSize=2
+
+### 3. Get one bike
+GET {{baseUrl}}/api/bikes/1
+
+### 4. Get a bike that doesn't exist -> 404
+GET {{baseUrl}}/api/bikes/999
+
+### 5. Create a bike -> 201 + Location header
+POST {{baseUrl}}/api/bikes
+Content-Type: application/json
+
+{
+  "model": "Kona Dew",
+  "type": "City",
+  "pricePerHour": 4.50
+}
+
+### 6. Create with invalid data -> 400
+POST {{baseUrl}}/api/bikes
+Content-Type: application/json
+
+{
+  "model": "",
+  "type": "Banana",
+  "pricePerHour": 0
+}
+
+### 7. Update a bike -> 200
+PUT {{baseUrl}}/api/bikes/1
+Content-Type: application/json
+
+{
+  "model": "Helkama Jopo",
+  "type": "City",
+  "pricePerHour": 3.50,
+  "inMaintenance": false
+}
+
+### 8. Put a bike into maintenance -> 200, status "InMaintenance"
+PUT {{baseUrl}}/api/bikes/2
+Content-Type: application/json
+
+{
+  "model": "Trek Marlin 7",
+  "type": "Mountain",
+  "pricePerHour": 5.00,
+  "inMaintenance": true
+}
+
+### 9. Update a bike that doesn't exist -> 404
+PUT {{baseUrl}}/api/bikes/999
+Content-Type: application/json
+
+{
+  "model": "Ghost",
+  "type": "City",
+  "pricePerHour": 1.00,
+  "inMaintenance": false
+}
+
+  ### 10. Soft delete a bike -> 204
+DELETE {{baseUrl}}/api/bikes/3
+
+### 11. Get the deleted bike -> 404
+GET {{baseUrl}}/api/bikes/3
+
+### 12. Delete it again -> 404
+DELETE {{baseUrl}}/api/bikes/3
