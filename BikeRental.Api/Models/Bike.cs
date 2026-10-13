@@ -8,4 +8,7 @@ public class Bike
     public decimal PricePerHour { get; set; }
     public bool InMaintenance { get; set; }
     public DateTime? DeletedUtc { get; set; }
+
+    // NEW: all rentals of this bike (the rental history)
+    public ICollection<Rental> Rentals { get; set; } = new List<Rental>();
 }

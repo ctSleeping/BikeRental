@@ -89,6 +89,137 @@ namespace BikeRental.Api.Migrations
                             Type = "City"
                         });
                 });
+
+            modelBuilder.Entity("BikeRental.Api.Models.Rental", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BikeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("EndUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("HourlyPrice")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("StartUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("TotalPrice")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BikeId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Rentals");
+                });
+
+            modelBuilder.Entity("BikeRental.Api.Models.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Email = "matti@example.com",
+                            FirstName = "Matti",
+                            LastName = "Meikäläinen",
+                            PasswordHash = "not-set",
+                            Role = "Customer"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Email = "liisa@example.com",
+                            FirstName = "Liisa",
+                            LastName = "Virtanen",
+                            PasswordHash = "not-set",
+                            Role = "Customer"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Email = "admin@example.com",
+                            FirstName = "Anna",
+                            LastName = "Admin",
+                            PasswordHash = "not-set",
+                            Role = "Admin"
+                        });
+                });
+
+            modelBuilder.Entity("BikeRental.Api.Models.Rental", b =>
+                {
+                    b.HasOne("BikeRental.Api.Models.Bike", "Bike")
+                        .WithMany("Rentals")
+                        .HasForeignKey("BikeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BikeRental.Api.Models.User", "User")
+                        .WithMany("Rentals")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Bike");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BikeRental.Api.Models.Bike", b =>
+                {
+                    b.Navigation("Rentals");
+                });
+
+            modelBuilder.Entity("BikeRental.Api.Models.User", b =>
+                {
+                    b.Navigation("Rentals");
+                });
 #pragma warning restore 612, 618
         }
     }
