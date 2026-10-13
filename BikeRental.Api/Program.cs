@@ -1,7 +1,8 @@
-using BikeRental.Api.Data;
-using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
-
+using BikeRental.Api.Common;
+using BikeRental.Api.Data;
+using BikeRental.Api.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace BikeRental.Api
 {
@@ -12,7 +13,6 @@ namespace BikeRental.Api
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -23,7 +23,13 @@ namespace BikeRental.Api
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
 
+            // NEW: when someone asks for IBikeService, give them a BikeService
+            builder.Services.AddScoped<IBikeService, BikeService>();
+
             var app = builder.Build();
+
+            // NEW: must be first, so it catches errors from everything below it
+            app.UseMiddleware<ExceptionMiddleware>();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -36,11 +42,9 @@ namespace BikeRental.Api
 
             app.UseAuthorization();
 
-
             app.MapControllers();
 
             app.Run();
         }
     }
 }
-//TEST COMMENT
