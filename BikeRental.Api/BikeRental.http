@@ -65,7 +65,7 @@ Content-Type: application/json
   "inMaintenance": false
 }
 
-  ### 10. Soft delete a bike -> 204
+### 10. Soft delete a bike -> 204
 DELETE {{baseUrl}}/api/bikes/3
 
 ### 11. Get the deleted bike -> 404
@@ -73,3 +73,6 @@ GET {{baseUrl}}/api/bikes/3
 
 ### 12. Delete it again -> 404
 DELETE {{baseUrl}}/api/bikes/3
+
+### 13. List users (for finding user ids)
+GET {{baseUrl}}/api/users

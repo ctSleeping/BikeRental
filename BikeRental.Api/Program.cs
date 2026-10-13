@@ -25,6 +25,7 @@ namespace BikeRental.Api
 
             // NEW: when someone asks for IBikeService, give them a BikeService
             builder.Services.AddScoped<IBikeService, BikeService>();
+            builder.Services.AddScoped<IUserService, UserService>();
 
             var app = builder.Build();
 
