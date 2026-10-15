@@ -15,21 +15,18 @@ public class RentalsController : ControllerBase
         _rentalService = rentalService;
     }
 
-    // GET /api/rentals
     [HttpGet]
     public async Task<ActionResult<List<RentalDto>>> GetAll()
     {
         return Ok(await _rentalService.GetAllAsync());
     }
 
-    // GET /api/rentals/5
     [HttpGet("{id:int}")]
     public async Task<ActionResult<RentalDto>> GetById(int id)
     {
         return Ok(await _rentalService.GetByIdAsync(id));
     }
 
-    // POST /api/rentals -> 201 + Location
     [HttpPost]
     public async Task<ActionResult<RentalDto>> Start(CreateRentalDto dto)
     {
@@ -37,7 +34,6 @@ public class RentalsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = rental.Id }, rental);
     }
 
-    // POST /api/rentals/5/return
     [HttpPost("{id:int}/return")]
     public async Task<ActionResult<RentalDto>> Return(int id)
     {

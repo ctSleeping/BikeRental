@@ -12,7 +12,7 @@ namespace BikeRental.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // Enums are serialized as strings ("City") instead of numbers.
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -29,20 +29,17 @@ namespace BikeRental.Api
 
             var app = builder.Build();
 
-            // apply any pending migrations at startup.
-            // A fresh clone gets its database (with seed data) automatically,
-            // so "dotnet run" alone is enough. If the database is already
-            // up to date, this does nothing.
+            // Applies pending migrations on startup, so the database and
+            // seed data are created automatically.
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 db.Database.Migrate();
             }
 
-            // Must be first, so it catches errors from everything below it
+            // Registered first so it handles exceptions from the whole pipeline.
             app.UseMiddleware<ExceptionMiddleware>();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();

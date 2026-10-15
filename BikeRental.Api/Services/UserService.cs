@@ -13,10 +13,9 @@ public class UserService : IUserService
         _context = context;
     }
 
+    // Projects directly to the DTO, so PasswordHash is never loaded.
     public async Task<List<UserDto>> GetAllAsync()
     {
-        // Select runs in the database: only these columns are read,
-        // so PasswordHash never even leaves the database.
         return await _context.Users
             .OrderBy(u => u.Id)
             .Select(u => new UserDto

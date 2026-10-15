@@ -15,28 +15,25 @@ public class RentalService : IRentalService
         _context = context;
     }
 
-    // GET /api/rentals – level 3: everyone sees all rentals (no login yet)
     public async Task<List<RentalDto>> GetAllAsync()
     {
         var rentals = await _context.Rentals
-            .Include(r => r.Bike)                 // also load the bike, for bike.model
-            .OrderByDescending(r => r.StartUtc)   // newest first
+            .Include(r => r.Bike)
+            .OrderByDescending(r => r.StartUtc)
             .ToListAsync();
 
         return rentals.Select(ToDto).ToList();
     }
 
-    // GET /api/rentals/5
     public async Task<RentalDto> GetByIdAsync(int id)
     {
         var rental = await FindRentalAsync(id);
         return ToDto(rental);
     }
 
-    // POST /api/rentals – start a rental
     public async Task<RentalDto> StartAsync(CreateRentalDto dto)
     {
-        // S1: the bike must exist and not be soft-deleted
+        // S1: the bike must exist and not be deleted.
         var bike = await _context.Bikes
             .FirstOrDefaultAsync(b => b.Id == dto.BikeId && b.DeletedUtc == null);
 
@@ -45,13 +42,12 @@ public class RentalService : IRentalService
             throw new NotFoundApiException("BikeNotFound", $"Bike with id {dto.BikeId} was not found.");
         }
 
-        // S2: the bike must not be in maintenance...
+        // S2: the bike must not be in maintenance or already rented.
         if (bike.InMaintenance)
         {
             throw new ConflictApiException("BikeNotAvailable", "Bike is in maintenance.");
         }
 
-        // S2: ...and must not already be rented (= has a rental with no EndUtc)
         var bikeIsRented = await _context.Rentals
             .AnyAsync(r => r.BikeId == bike.Id && r.EndUtc == null);
 
@@ -60,7 +56,6 @@ public class RentalService : IRentalService
             throw new ConflictApiException("BikeNotAvailable", "Bike is already rented.");
         }
 
-        // The user must exist (level 3: user comes from the request)
         var user = await _context.Users
             .FirstOrDefaultAsync(u => u.Id == dto.UserId);
 
@@ -69,7 +64,7 @@ public class RentalService : IRentalService
             throw new NotFoundApiException("UserNotFound", $"User with id {dto.UserId} was not found.");
         }
 
-        // S3: a user can have only one active rental at a time
+        // S3: a user can have only one active rental.
         var userHasActiveRental = await _context.Rentals
             .AnyAsync(r => r.UserId == user.Id && r.EndUtc == null);
 
@@ -78,15 +73,14 @@ public class RentalService : IRentalService
             throw new ConflictApiException("UserHasActiveRental", "User already has an active rental.");
         }
 
-        // All rules passed -> create the rental
         var rental = new Rental
         {
             Bike = bike,
             User = user,
             StartUtc = DateTime.UtcNow,
-            EndUtc = null,                    // null = active
-            HourlyPrice = bike.PricePerHour,  // price is fixed at the start
-            TotalPrice = null                 // calculated on return
+            EndUtc = null,
+            HourlyPrice = bike.PricePerHour,
+            TotalPrice = null
         };
 
         _context.Rentals.Add(rental);
@@ -95,12 +89,11 @@ public class RentalService : IRentalService
         return ToDto(rental);
     }
 
-    // POST /api/rentals/5/return – end a rental
     public async Task<RentalDto> ReturnAsync(int id)
     {
         var rental = await FindRentalAsync(id);
 
-        // S4: only an active rental can be returned
+        // S4: only an active rental can be returned.
         if (rental.EndUtc != null)
         {
             throw new ConflictApiException("RentalNotActive", "Rental is not active.");
@@ -109,14 +102,12 @@ public class RentalService : IRentalService
         rental.EndUtc = DateTime.UtcNow;
         rental.TotalPrice = CalculatePrice(rental.StartUtc, rental.EndUtc.Value, rental.HourlyPrice);
 
-        // All changes saved with ONE SaveChangesAsync call (course rule)
         await _context.SaveChangesAsync();
 
         return ToDto(rental);
     }
 
-    // hours = max(1, ceil(duration in hours)); total = hours × hourly price
-    // Examples at 3.50 €/h:  10 min -> 1 h -> 3.50   |   2 h 20 min -> 3 h -> 10.50
+    // Every started hour is charged in full, with a minimum of one hour.
     public static decimal CalculatePrice(DateTime startUtc, DateTime endUtc, decimal hourlyPrice)
     {
         var durationHours = (endUtc - startUtc).TotalHours;
@@ -124,7 +115,6 @@ public class RentalService : IRentalService
         return billableHours * hourlyPrice;
     }
 
-    // Finds a rental (with its bike) or throws 404 RentalNotFound
     private async Task<Rental> FindRentalAsync(int id)
     {
         var rental = await _context.Rentals

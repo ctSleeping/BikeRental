@@ -15,8 +15,7 @@ public class UsersController : ControllerBase
         _userService = userService;
     }
 
-    // GET /api/users
-    // Level 3: open to everyone (no login yet). Level 4+ would limit this to Admin.
+    // No authentication yet, so the list is available to everyone.
     [HttpGet]
     public async Task<ActionResult<List<UserDto>>> GetAll()
     {

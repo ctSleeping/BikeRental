@@ -2,8 +2,7 @@
 
 namespace BikeRental.Api.Common;
 
-// Runs around every request. If anything below it throws,
-// it turns the exception into a ProblemDetails JSON response.
+// Converts exceptions into ProblemDetails responses with a "code" field.
 public class ExceptionMiddleware
 {
     private readonly RequestDelegate _next;
@@ -19,16 +18,14 @@ public class ExceptionMiddleware
     {
         try
         {
-            await _next(context);   // run the rest of the pipeline (controllers etc.)
+            await _next(context);
         }
         catch (ApiException ex)
         {
-            // Expected error from our own rules -> its own status + code
             await WriteProblem(context, ex.StatusCode, ex.Message, ex.Code);
         }
         catch (Exception ex)
         {
-            // Unexpected bug -> log it, return a generic 500
             _logger.LogError(ex, "Unhandled exception");
             await WriteProblem(context, 500, "An unexpected error occurred.", "InternalServerError");
         }

@@ -3,7 +3,6 @@ using BikeRental.Api.Models;
 
 namespace BikeRental.Api.Dtos;
 
-// What the client sends IN when updating a bike.
 public class UpdateBikeDto
 {
     [Required]
@@ -16,6 +15,6 @@ public class UpdateBikeDto
     [Range(0.01, 1000)]
     public decimal PricePerHour { get; set; }
 
-    // The only status-related thing the client may change (rule S6).
+    // Status cannot be set directly (S6); only the maintenance flag can be changed.
     public bool InMaintenance { get; set; }
 }

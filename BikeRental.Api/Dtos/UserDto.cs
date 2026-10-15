@@ -2,7 +2,6 @@
 
 namespace BikeRental.Api.Dtos;
 
-// What the API shows about a user. No PasswordHash, ever.
 public class UserDto
 {
     public int Id { get; set; }

@@ -18,7 +18,6 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // --- Bike ---
         modelBuilder.Entity<Bike>(bike =>
         {
             bike.Property(b => b.Model).IsRequired().HasMaxLength(100);
@@ -26,36 +25,33 @@ public class AppDbContext : DbContext
             bike.Property(b => b.PricePerHour).HasPrecision(10, 2);
         });
 
-        // --- User ---
         modelBuilder.Entity<User>(user =>
         {
             user.Property(u => u.FirstName).IsRequired().HasMaxLength(100);
             user.Property(u => u.LastName).IsRequired().HasMaxLength(100);
             user.Property(u => u.Email).IsRequired().HasMaxLength(200);
-            user.HasIndex(u => u.Email).IsUnique();          // same email can't exist twice
+            user.HasIndex(u => u.Email).IsUnique();
             user.Property(u => u.Role).HasConversion<string>().HasMaxLength(20);
         });
 
-        // --- Rental + relationships ---
         modelBuilder.Entity<Rental>(rental =>
         {
             rental.Property(r => r.HourlyPrice).HasPrecision(10, 2);
             rental.Property(r => r.TotalPrice).HasPrecision(10, 2);
 
-            // A rental has one bike; a bike has many rentals.
+            // One bike has many rentals.
             rental.HasOne(r => r.Bike)
                 .WithMany(b => b.Rentals)
                 .HasForeignKey(r => r.BikeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // A rental has one user; a user has many rentals.
+            // One user has many rentals.
             rental.HasOne(r => r.User)
                 .WithMany(u => u.Rentals)
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // --- Seed data ---
         modelBuilder.Entity<Bike>().HasData(
             new Bike { Id = 1, Model = "Helkama Jopo", Type = BikeType.City, PricePerHour = 3.50m },
             new Bike { Id = 2, Model = "Trek Marlin 7", Type = BikeType.Mountain, PricePerHour = 5.00m },
@@ -70,9 +66,9 @@ public class AppDbContext : DbContext
             new User { Id = 3, FirstName = "Anna", LastName = "Admin", Email = "admin@example.com", PasswordHash = "not-set", Role = UserRole.Admin }
         );
 
-        // --- UTC fix: keep this LAST ---
-        // SQLite forgets that a date was UTC. This marks every date read
-        // from the database as UTC, so JSON times end in "Z".
+        // SQLite does not store DateTimeKind. These converters mark every
+        // date read from the database as UTC, so JSON times end in "Z".
+        // Kept last so they apply to every DateTime property.
         var utcConverter = new ValueConverter<DateTime, DateTime>(
             toDb => toDb,
             fromDb => DateTime.SpecifyKind(fromDb, DateTimeKind.Utc));

@@ -1,7 +1,5 @@
 ﻿namespace BikeRental.Api.Dtos;
 
-// What the API sends OUT for a rental.
-// Matches the example JSON on the course page field by field.
 public class RentalDto
 {
     public int Id { get; set; }
@@ -11,11 +9,10 @@ public class RentalDto
     public decimal HourlyPrice { get; set; }
     public decimal? TotalPrice { get; set; }
 
-    // "Active" or "Completed" – computed from EndUtc, never stored.
+    // Active or Completed, based on EndUtc.
     public string Status { get; set; } = string.Empty;
 }
 
-// The small bike object inside a rental: { "id": 12, "model": "Helkama Jopo" }
 public class BikeSummaryDto
 {
     public int Id { get; set; }

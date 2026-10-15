@@ -3,7 +3,6 @@ using BikeRental.Api.Models;
 
 namespace BikeRental.Api.Dtos;
 
-// What the client sends IN when creating a bike.
 public class CreateBikeDto
 {
     [Required]

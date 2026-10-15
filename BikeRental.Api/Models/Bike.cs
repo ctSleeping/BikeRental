@@ -7,8 +7,9 @@ public class Bike
     public BikeType Type { get; set; }
     public decimal PricePerHour { get; set; }
     public bool InMaintenance { get; set; }
+
+    // Set when the bike is soft-deleted; null for active bikes.
     public DateTime? DeletedUtc { get; set; }
 
-    // NEW: all rentals of this bike (the rental history)
     public ICollection<Rental> Rentals { get; set; } = new List<Rental>();
 }
