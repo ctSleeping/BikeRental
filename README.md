@@ -11,25 +11,19 @@ Everything in the project should fulfill the requirements for a level 3.
 
 Requirements: .NET 8 SDK.
 
-1. Install the EF Core tool (once per computer):
-```
-   dotnet tool install --global dotnet-ef --version 8.*
-```
-2. Go to the project folder and create the database:
-```
-   cd BikeRental.Api
-   dotnet ef database update
-```
-   This creates `bikerental.db` with 5 seed bikes and 3 seed users.
-3. Start the API:
-```
-   dotnet run
-```
-   or press F5 in Visual Studio.
-4. Open Swagger at `http://localhost:5260/swagger`.
+1. Start the API from the repository root:
 
-To reset the database, stop the API, delete `bikerental.db`
-and run `dotnet ef database update` again.
+    dotnet run --project BikeRental.Api
+
+    or open the solution in Visual Studio and press F5.
+
+   The database (`bikerental.db`) is created automatically on first
+   start, with 5 seed bikes and 3 seed users.
+
+2. Open Swagger at `http://localhost:5260/swagger`.
+
+To reset the database, stop the API, delete `bikerental.db` and
+start the API again.
 
 ## Testing
 
@@ -55,8 +49,7 @@ Each request's comment shows the expected status code.
 
 ## Demo
 
-Before starting: stop the API, delete `bikerental.db`,
-run `dotnet ef database update` to get a fresh db, then start the API (F5).
+Before starting: stop the API, delete `bikerental.db`, then start the API (F5).
 
 Run these requests from `BikeRental.http` in this order:
 
