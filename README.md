@@ -1,5 +1,5 @@
 # BikeRental API
-
+Christian Tiensuu/e2501203
 Backend project for a bike rental service,
  ASP.NET Core Web API, .NET 8 & Entity Framework Core 8.
 
