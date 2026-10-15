@@ -3,6 +3,10 @@
 Backend project for a bike rental service,
  ASP.NET Core Web API, .NET 8 & Entity Framework Core 8.
 
+## Level goal
+
+Everything in the project should fulfill the requirements for a level 3.
+
 ## Getting started
 
 Requirements: .NET 8 SDK.
