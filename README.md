@@ -26,7 +26,7 @@ Requirements: .NET 8 SDK.
    dotnet run
 ```
    or press F5 in Visual Studio.
-4. Open Swagger at `http://localhost:5077/swagger`.
+4. Open Swagger at `http://localhost:5260/swagger`.
 
 To reset the database, stop the API, delete `bikerental.db`
 and run `dotnet ef database update` again.
