@@ -137,3 +137,38 @@ POST {{baseUrl}}/api/rentals/1/return
 
 ### 23. Rental that doesn't exist -> 404 RentalNotFound
 GET {{baseUrl}}/api/rentals/999
+
+### 24. User 2 rents bike 4 -> 201 (note the rental id in the response)
+POST {{baseUrl}}/api/rentals
+Content-Type: application/json
+
+{
+  "bikeId": 4,
+  "userId": 2
+}
+
+### 25. Bike 4 now shows "Rented"
+GET {{baseUrl}}/api/bikes/4
+
+### 26. Try to put the rented bike into maintenance -> 409 BikeRented (S7)
+PUT {{baseUrl}}/api/bikes/4
+Content-Type: application/json
+
+{
+  "model": "Puky ZL 16",
+  "type": "Kids",
+  "pricePerHour": 2.00,
+  "inMaintenance": true
+}
+
+### 27. Try to delete the rented bike -> 409 BikeRented (S8)
+DELETE {{baseUrl}}/api/bikes/4
+
+### 28. The bike list shows bike 4 as "Rented"
+GET {{baseUrl}}/api/bikes
+
+### 29. Return the rental (use the id from #24's response) -> 200
+POST {{baseUrl}}/api/rentals/2/return
+
+### 30. Bike 4 is "Available" again
+GET {{baseUrl}}/api/bikes/4
