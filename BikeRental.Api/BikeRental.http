@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:5077
+@baseUrl = http://localhost:5260
 
 ### 1. List bikes (paging wrapper, default page)
 GET {{baseUrl}}/api/bikes
