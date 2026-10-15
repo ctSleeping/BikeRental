@@ -76,3 +76,64 @@ DELETE {{baseUrl}}/api/bikes/3
 
 ### 13. List users (for finding user ids)
 GET {{baseUrl}}/api/users
+
+  
+### 14. Start a rental: user 1 rents bike 1 -> 201, status "Active"
+POST {{baseUrl}}/api/rentals
+Content-Type: application/json
+
+{
+  "bikeId": 1,
+  "userId": 1
+}
+
+### 15. Same user tries a second rental -> 409 UserHasActiveRental
+POST {{baseUrl}}/api/rentals
+Content-Type: application/json
+
+{
+  "bikeId": 4,
+  "userId": 1
+}
+
+### 16. Another user tries the rented bike -> 409 BikeNotAvailable
+POST {{baseUrl}}/api/rentals
+Content-Type: application/json
+
+{
+  "bikeId": 1,
+  "userId": 2
+}
+
+### 17. Rent a bike in maintenance (bike 5) -> 409 BikeNotAvailable
+POST {{baseUrl}}/api/rentals
+Content-Type: application/json
+
+{
+  "bikeId": 5,
+  "userId": 2
+}
+
+### 18. Rent a bike that doesn't exist -> 404 BikeNotFound
+POST {{baseUrl}}/api/rentals
+Content-Type: application/json
+
+{
+  "bikeId": 999,
+  "userId": 2
+}
+
+### 19. List all rentals
+GET {{baseUrl}}/api/rentals
+
+### 20. Get one rental (use the id from #14's response)
+GET {{baseUrl}}/api/rentals/1
+
+### 21. Return the rental -> 200, status "Completed", totalPrice 3.50
+POST {{baseUrl}}/api/rentals/1/return
+
+### 22. Return it again -> 409 RentalNotActive
+POST {{baseUrl}}/api/rentals/1/return
+
+### 23. Rental that doesn't exist -> 404 RentalNotFound
+GET {{baseUrl}}/api/rentals/999

@@ -23,9 +23,10 @@ namespace BikeRental.Api
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
 
-            // NEW: when someone asks for IBikeService, give them a BikeService
+            // NEW: when someone asks for IService, give them a Service
             builder.Services.AddScoped<IBikeService, BikeService>();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IRentalService, RentalService>();
 
             var app = builder.Build();
 
