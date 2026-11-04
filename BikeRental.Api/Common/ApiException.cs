@@ -15,6 +15,12 @@ public abstract class ApiException : Exception
     }
 }
 
+public class UnauthorizedApiException : ApiException
+{
+    public UnauthorizedApiException(string code, string message)
+        : base(401, code, message) { }
+}
+
 public class NotFoundApiException : ApiException
 {
     public NotFoundApiException(string code, string message)

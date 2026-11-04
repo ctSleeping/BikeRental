@@ -60,10 +60,35 @@ public class AppDbContext : DbContext
             new Bike { Id = 5, Model = "Cannondale Quick", Type = BikeType.City, PricePerHour = 4.00m, InMaintenance = true }
         );
 
+        // Seed users. Password for all: Password123!
         modelBuilder.Entity<User>().HasData(
-            new User { Id = 1, FirstName = "Matti", LastName = "Meikäläinen", Email = "matti@example.com", PasswordHash = "not-set", Role = UserRole.Customer },
-            new User { Id = 2, FirstName = "Liisa", LastName = "Virtanen", Email = "liisa@example.com", PasswordHash = "not-set", Role = UserRole.Customer },
-            new User { Id = 3, FirstName = "Anna", LastName = "Admin", Email = "admin@example.com", PasswordHash = "not-set", Role = UserRole.Admin }
+            new User
+            {
+                Id = 1,
+                FirstName = "Matti",
+                LastName = "Meikäläinen",
+                Email = "matti@example.com",
+                Role = UserRole.Customer,
+                PasswordHash = "AQAAAAIAAYagAAAAEDO7IAsxiuY3CK48XjKrNBPFYgo9owSCt0Zi9jDJqjCf6tHhVeQkQS2TX9nbUBOD+w=="
+            },
+            new User
+            {
+                Id = 2,
+                FirstName = "Liisa",
+                LastName = "Virtanen",
+                Email = "liisa@example.com",
+                Role = UserRole.Customer,
+                PasswordHash = "AQAAAAIAAYagAAAAEP8YpShRA5TmKFSjYIC8/4iyD2DaB/Y3iVq82EXvujZEku8U9+T71ly4qqw+XDz4DA=="
+            },
+            new User
+            {
+                Id = 3,
+                FirstName = "Anna",
+                LastName = "Admin",
+                Email = "admin@example.com",
+                Role = UserRole.Admin,
+                PasswordHash = "AQAAAAIAAYagAAAAEFJB5Jvd7gioD9l0/n06z0vb+Q5cO3AMi+wrva+7ZyEd6uiv9STbc+T2uP+5DGOwnQ=="
+            }
         );
 
         // SQLite does not store DateTimeKind. These converters mark every

@@ -1,4 +1,5 @@
-﻿using BikeRental.Api.Data;
+﻿using BikeRental.Api.Common;
+using BikeRental.Api.Data;
 using BikeRental.Api.Dtos;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,5 +28,27 @@ public class UserService : IUserService
                 Role = u.Role
             })
             .ToListAsync();
+    }
+
+    public async Task<UserDto> GetByIdAsync(int id)
+    {
+        var user = await _context.Users
+            .Where(u => u.Id == id)
+            .Select(u => new UserDto
+            {
+                Id = u.Id,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                Email = u.Email,
+                Role = u.Role
+            })
+            .FirstOrDefaultAsync();
+
+        if (user == null)
+        {
+            throw new NotFoundApiException("UserNotFound", $"User with id {id} was not found.");
+        }
+
+        return user;
     }
 }

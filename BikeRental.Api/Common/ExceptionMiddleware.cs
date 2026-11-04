@@ -35,6 +35,7 @@ public class ExceptionMiddleware
     {
         var title = status switch
         {
+            401 => "Unauthorized",
             404 => "Not Found",
             409 => "Conflict",
             _ => "Internal Server Error"

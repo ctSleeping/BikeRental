@@ -15,7 +15,7 @@ namespace BikeRental.Api.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.31");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.33");
 
             modelBuilder.Entity("BikeRental.Api.Models.Bike", b =>
                 {
@@ -169,7 +169,7 @@ namespace BikeRental.Api.Migrations
                             Email = "matti@example.com",
                             FirstName = "Matti",
                             LastName = "Meikäläinen",
-                            PasswordHash = "not-set",
+                            PasswordHash = "AQAAAAIAAYagAAAAEDO7IAsxiuY3CK48XjKrNBPFYgo9owSCt0Zi9jDJqjCf6tHhVeQkQS2TX9nbUBOD+w==",
                             Role = "Customer"
                         },
                         new
@@ -178,7 +178,7 @@ namespace BikeRental.Api.Migrations
                             Email = "liisa@example.com",
                             FirstName = "Liisa",
                             LastName = "Virtanen",
-                            PasswordHash = "not-set",
+                            PasswordHash = "AQAAAAIAAYagAAAAEP8YpShRA5TmKFSjYIC8/4iyD2DaB/Y3iVq82EXvujZEku8U9+T71ly4qqw+XDz4DA==",
                             Role = "Customer"
                         },
                         new
@@ -187,7 +187,7 @@ namespace BikeRental.Api.Migrations
                             Email = "admin@example.com",
                             FirstName = "Anna",
                             LastName = "Admin",
-                            PasswordHash = "not-set",
+                            PasswordHash = "AQAAAAIAAYagAAAAEFJB5Jvd7gioD9l0/n06z0vb+Q5cO3AMi+wrva+7ZyEd6uiv9STbc+T2uP+5DGOwnQ==",
                             Role = "Admin"
                         });
                 });
