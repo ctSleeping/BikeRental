@@ -9,8 +9,8 @@ public class BikeDto
     public BikeType Type { get; set; }
     public decimal PricePerHour { get; set; }
 
-    // Available, Rented or InMaintenance. Computed, not stored.
-    public string Status { get; set; } = string.Empty;
+    // Computed, not stored.
+    public BikeStatus Status { get; set; }
 
     public int? StationId { get; set; }
 }

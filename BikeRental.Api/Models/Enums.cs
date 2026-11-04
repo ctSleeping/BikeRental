@@ -1,7 +1,8 @@
-﻿namespace BikeRental.Api.Models
-{
+﻿namespace BikeRental.Api.Models;
 
-    public enum BikeType { City, Mountain, Electric, Kids }
+public enum BikeType { City, Mountain, Electric, Kids }
 
-    public enum UserRole { Customer, Admin }
-}
+public enum UserRole { Customer, Admin }
+
+// Computed bike status. Not stored in the database.
+public enum BikeStatus { Available, Rented, InMaintenance }

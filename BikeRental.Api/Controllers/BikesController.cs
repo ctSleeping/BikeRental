@@ -17,11 +17,11 @@ public class BikesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<PagedResult<BikeDto>>> GetAll(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10)
+    // GET /api/bikes?type=City&status=Available&stationId=1&page=1&pageSize=10
+    [HttpGet]
+    public async Task<ActionResult<PagedResult<BikeDto>>> GetAll([FromQuery] BikeQuery query)
     {
-        return Ok(await _bikeService.GetAllAsync(page, pageSize));
+        return Ok(await _bikeService.GetAllAsync(query));
     }
 
     [HttpGet("{id:int}")]

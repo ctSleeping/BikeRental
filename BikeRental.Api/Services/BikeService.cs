@@ -15,19 +15,39 @@ public class BikeService : IBikeService
         _context = context;
     }
 
-    public async Task<PagedResult<BikeDto>> GetAllAsync(int page, int pageSize)
+    public async Task<PagedResult<BikeDto>> GetAllAsync(BikeQuery filter)
     {
-        if (page < 1) page = 1;
-        if (pageSize < 1) pageSize = 10;
-        if (pageSize > 100) pageSize = 100;
+        var page = filter.Page < 1 ? 1 : filter.Page;
+        var pageSize = filter.PageSize < 1 ? 10 : Math.Min(filter.PageSize, 100);
 
-        var query = _context.Bikes
-            .Where(b => b.DeletedUtc == null)
-            .OrderBy(b => b.Id);
+        IQueryable<Bike> query = _context.Bikes.Where(b => b.DeletedUtc == null);
+
+        if (filter.Type != null)
+        {
+            var type = filter.Type.Value;
+            query = query.Where(b => b.Type == type);
+        }
+
+        if (filter.StationId != null)
+        {
+            var stationId = filter.StationId.Value;
+            query = query.Where(b => b.StationId == stationId);
+        }
+
+        // Status is computed, so the filter uses the same rules as ToDto,
+        // translated to SQL by EF.
+        query = filter.Status switch
+        {
+            BikeStatus.InMaintenance => query.Where(b => b.InMaintenance),
+            BikeStatus.Rented => query.Where(b => !b.InMaintenance && b.Rentals.Any(r => r.EndUtc == null)),
+            BikeStatus.Available => query.Where(b => !b.InMaintenance && !b.Rentals.Any(r => r.EndUtc == null)),
+            _ => query
+        };
 
         var totalCount = await query.CountAsync();
 
         var bikes = await query
+            .OrderBy(b => b.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -146,14 +166,14 @@ public class BikeService : IBikeService
     // Status priority: InMaintenance, then Rented, otherwise Available.
     private static BikeDto ToDto(Bike bike, bool isRented)
     {
-        string status;
+        BikeStatus status;
 
         if (bike.InMaintenance)
-            status = "InMaintenance";
+            status = BikeStatus.InMaintenance;
         else if (isRented)
-            status = "Rented";
+            status = BikeStatus.Rented;
         else
-            status = "Available";
+            status = BikeStatus.Available;
 
         return new BikeDto
         {
