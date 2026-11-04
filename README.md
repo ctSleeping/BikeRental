@@ -1,96 +1,122 @@
 # BikeRental API
-Christian Tiensuu/e2501203
-Backend project for a bike rental service,
- ASP.NET Core Web API, .NET 8 & Entity Framework Core 8.
 
-## Level goal
-
-Everything in the project should fulfill the requirements for a level 3.
+Backend for a bike rental service: ASP.NET Core Web API, .NET 8,
+Entity Framework Core 8 and SQLite. Built for the Backend Programming
+course (TT00BW43) and used as the backend for the frontend course project.
 
 ## Getting started
 
 Requirements: .NET 8 SDK.
 
-1. Start the API from the repository root:
+1. Set the JWT signing key (once per computer, from the `BikeRental.Api` folder).
+   It is stored in user-secrets, outside the repository, and must be at
+   least 32 characters:
+```
+   cd BikeRental.Api
+   dotnet user-secrets set "Jwt:Key" "replace-with-a-long-random-secret-of-32-chars-or-more"
+```
+2. Start the API from the repository root:
+```
+   dotnet run --project BikeRental.Api
+```
+   or open the solution in Visual Studio and press F5.
 
-    dotnet run --project BikeRental.Api
+   The database (`bikerental.db`) is created automatically on first start,
+   with 3 stations, 5 bikes and 3 users.
+3. Open Swagger at `http://localhost:5260/swagger`. To call protected
+   endpoints, log in with `POST /api/auth/login`, click **Authorize** and
+   paste the token.
 
-    or open the solution in Visual Studio and press F5.
+To reset the database, stop the API, delete `bikerental.db` and start the
+API again.
 
-   The database (`bikerental.db`) is created automatically on first
-   start, with 5 seed bikes and 3 seed users.
+### Seed users
 
-2. Open Swagger at `http://localhost:5260/swagger`.
+All seed users have the password `Password123!`.
 
-To reset the database, stop the API, delete `bikerental.db` and
-start the API again.
+| Email | Role |
+|---|---|
+| `matti@example.com` | Customer |
+| `liisa@example.com` | Customer |
+| `admin@example.com` | Admin |
 
-## Testing
+New users registered through the API are always Customers.
 
-`BikeRental.Api/BikeRental.http` runs the whole flow: bike CRUD,
-renting, returning, price calculation and every error case.
-Reset the database first, then run requests #1–#30 in order.
-Each request's comment shows the expected status code.
+## Using the API from a frontend
+
+- Base URL: `http://localhost:5260`
+- CORS allows `http://localhost:5173`. For a different frontend address,
+  change the `WithOrigins(...)` line in `Program.cs`.
+- Log in with `POST /api/auth/login` and send the returned token on
+  protected requests: `Authorization: Bearer <token>`. Tokens are valid
+  for 2 hours.
+- JSON uses camelCase, enums are strings (`"type": "City"`) and times are
+  UTC ending in `Z`.
+- Errors use ProblemDetails with a machine-readable `code` field, for
+  example `{ "title": "Conflict", "status": 409, "detail": "...", "code": "UserHasActiveRental" }`.
 
 ## Endpoints
 
-| Method | URL | Description |
+| Method | URL | Access |
 |---|---|---|
-| GET | `/api/bikes?page=1&pageSize=10` | List bikes (paging wrapper) |
-| GET | `/api/bikes/{id}` | One bike |
-| POST | `/api/bikes` | Create a bike → 201 + Location |
-| PUT | `/api/bikes/{id}` | Update a bike (incl. `inMaintenance`) |
-| DELETE | `/api/bikes/{id}` | Soft delete → 204 |
-| GET | `/api/users` | List users |
-| GET | `/api/rentals` | List rentals |
-| GET | `/api/rentals/{id}` | One rental |
-| POST | `/api/rentals` | Start a rental `{ "bikeId": 1, "userId": 1 }` → 201 + Location |
-| POST | `/api/rentals/{id}/return` | Return a rental, calculates the price |
+| POST | `/api/auth/register` | Everyone |
+| POST | `/api/auth/login` | Everyone |
+| GET | `/api/users/me` | Logged in |
+| GET | `/api/users` | Admin |
+| GET | `/api/bikes?type=&status=&stationId=&page=&pageSize=` | Everyone |
+| GET | `/api/bikes/{id}` | Everyone |
+| POST / PUT / DELETE | `/api/bikes`, `/api/bikes/{id}` | Admin |
+| GET | `/api/stations`, `/api/stations/{id}` | Everyone |
+| POST / PUT / DELETE | `/api/stations`, `/api/stations/{id}` | Admin |
+| GET | `/api/rentals`, `/api/rentals/{id}` | Logged in (own rentals; Admin sees all) |
+| POST | `/api/rentals` with `{ "bikeId": 1 }` | Logged in |
+| POST | `/api/rentals/{id}/return` with optional `{ "returnStationId": 3 }` | Logged in (own rentals) |
 
-## Demo
+Creating a resource returns `201 Created` with a `Location` header.
+`GET /api/bikes` always returns `{ items, totalCount, page, pageSize, totalPages }`.
 
-Before starting: stop the API, delete `bikerental.db`, then start the API (F5).
+## Business rules
 
-Run these requests from `BikeRental.http` in this order:
+| Rule | Error |
+|---|---|
+| S1 The bike must exist and not be deleted | 404 `BikeNotFound` |
+| S2 The bike must not be in maintenance or rented | 409 `BikeNotAvailable` |
+| S3 A user can have only one active rental | 409 `UserHasActiveRental` |
+| S4 Only an active rental can be returned | 409 `RentalNotActive` |
+| S5 Only the owner can see and return a rental | 404 `RentalNotFound` |
+| S6 Status cannot be set directly; only `inMaintenance` can be changed | – |
+| S7/S8 A rented bike cannot be set to maintenance or deleted | 409 `BikeRented` |
+| S9 Deleting a bike is a soft delete, so rental history is kept | – |
+| S10 A station with bikes cannot be deleted | 409 `StationHasBikes` |
+| S11 An email can be registered only once | 409 `EmailTaken` |
 
-| Order | Request | Shows |
-|---|---|---|
-| 1 | **#1** GET all bikes
-| 2 | **#14** User 1 rents bike 1 | 201 Created
-| 3 | **#15** User 1 rents another bike | 409 
-| 4 | **#3** GET bike 1
-| 5 | **#21** Return rental 1
-| 6 | **#22** Return it again | 409
+**Pricing:** `hours = max(1, ceil(duration in hours))`,
+`total = hours × hourlyPrice`. The hourly price is copied into the rental
+when it starts, so later price changes don't affect it.
 
-## Features
+**Stations:** a rental's pickup station is read from the bike. On return,
+the bike moves to the chosen return station, or back to the pickup station
+if none is given.
 
-- **Layers:** controllers handle HTTP only, services contain the rules
-  and database work, `AppDbContext` handles the database
-- **Entities:** Bike, User, Rental with one-to-many relationships
-  (a user has many rentals, a bike has many rentals)
-- **DTOs** for all input and output; entities are never returned directly,
-  and `passwordHash` is never returned
-- **Computed status, never stored:** a bike is `InMaintenance`, `Rented`
-  (has a rental with no end time) or `Available`; a rental is `Active`
-  or `Completed` depending on `endUtc`
-- **Price calculation:** `hours = max(1, ceil(duration))`,
-  `total = hours × hourlyPrice`. The hourly price is copied into the
-  rental when it starts, so later price changes don't affect it.
-- **Business rules:**
-  - S1 bike must exist and not be deleted → 404 `BikeNotFound`
-  - S2 bike must not be in maintenance or rented → 409 `BikeNotAvailable`
-  - S3 one active rental per user → 409 `UserHasActiveRental`
-  - S4 only an active rental can be returned → 409 `RentalNotActive`
-  - S6 status can't be set directly; only `inMaintenance` can be changed
-  - S7/S8 a rented bike can't be set to maintenance or deleted → 409 `BikeRented`
-  - S9 soft delete keeps the rental history
-- **Errors** in ProblemDetails format with a machine-readable `code`
-  field, handled in one place by `ExceptionMiddleware`
-- **Paging** in the database (`Skip`/`Take`), always in the
-  `{ items, totalCount, page, pageSize, totalPages }` wrapper
-- Validation with data annotations (400 for invalid input)
-- Enums as strings and times in UTC ending in `Z`
-- EF Core migrations and seed data
+**Status** is computed, never stored: a bike is `InMaintenance`, `Rented`
+(it has a rental without an end time) or `Available`. A rental is `Active`
+or `Completed` depending on `endUtc`.
+
+## Structure
+
+- `Controllers/`: HTTP only (routing, status codes, authorization attributes)
+- `Services/`: business rules and database work
+- `Data/AppDbContext.cs`: EF Core model, relationships and seed data
+- `Dtos/`: request and response shapes; entities are never returned directly
+- `Common/`: error types and the exception middleware
+- `BikeRental.Tests/`: xUnit tests for the price calculation
+
+## Testing
+
+- `BikeRental.Api/BikeRental.http` runs the whole flow (50 requests,
+  including every error case). Reset the database first and run the
+  requests in order; each comment shows the expected result.
+- Unit tests: `dotnet test` from the repository root.
 
 ## Use of AI
 
@@ -100,9 +126,10 @@ when mistakes/errors were made.
 
 ## Known limitations
 
-- No login (level 4). The user who rents is given in the request
-  (`userId`), so anyone can rent as any user and see all rentals,
-  and `GET /api/users` is open to everyone.
-- Seed users have a placeholder instead of a real password hash.
-- No stations, roles or filtering (level 5).
-- Validation errors (400) use ASP.NET's default format, without a `code` field.
+- Local development setup: HTTP only, no HTTPS redirect, and CORS allows
+  one hard-coded origin.
+- No refresh tokens; log in again after the token expires (2 hours).
+- Admin users can only come from seed data.
+- 400 validation errors use ASP.NET's default format, and 401/403
+  responses have an empty body; neither has a `code` field.
+- Deleting a station clears the station ids of old rentals that used it.

@@ -1,29 +1,147 @@
 @baseUrl = http://localhost:5260
 
-### 1. List bikes (paging wrapper, default page)
+# Run from top to bottom on a fresh database:
+# stop the API, delete bikerental.db, start the API.
+# Requests #12-#14 log in; later requests reuse their tokens.
+
+### 1. List stations -> 200, 3 stations
+GET {{baseUrl}}/api/stations
+
+### 2. List bikes -> 200, paging wrapper, 5 bikes
 GET {{baseUrl}}/api/bikes
 
-### 2. List bikes, page 1 with 2 per page
-GET {{baseUrl}}/api/bikes?page=1&pageSize=2
+### 3. Filter by type -> bikes 1 and 5
+GET {{baseUrl}}/api/bikes?type=City
 
-### 3. Get one bike
+### 4. Filter by status -> bikes 1-4
+GET {{baseUrl}}/api/bikes?status=Available
+
+### 5. Filter by station -> bikes 3 and 4
+GET {{baseUrl}}/api/bikes?stationId=2
+
+### 6. Combined filters and paging -> bike 1
+GET {{baseUrl}}/api/bikes?type=City&status=Available&page=1&pageSize=2
+
+### 7. One bike -> 200
 GET {{baseUrl}}/api/bikes/1
 
-### 4. Get a bike that doesn't exist -> 404
+### 8. Unknown bike -> 404 BikeNotFound
 GET {{baseUrl}}/api/bikes/999
 
-### 5. Create a bike -> 201 + Location header
+### 9. Register -> 201
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Testi",
+  "lastName": "Käyttäjä",
+  "email": "testi@example.com",
+  "password": "Salasana123"
+}
+
+### 10. Register the same email again -> 409 EmailTaken
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Testi",
+  "lastName": "Käyttäjä",
+  "email": "testi@example.com",
+  "password": "Salasana123"
+}
+
+### 11. Wrong password -> 401 InvalidCredentials
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "matti@example.com",
+  "password": "wrong-password"
+}
+
+### 12. Log in as matti (Customer) -> 200
+# @name loginMatti
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "matti@example.com",
+  "password": "Password123!"
+}
+
+### 13. Log in as liisa (Customer) -> 200
+# @name loginLiisa
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "liisa@example.com",
+  "password": "Password123!"
+}
+
+### 14. Log in as admin -> 200
+# @name loginAdmin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "Password123!"
+}
+
+### 15. Own profile -> 200, Matti
+GET {{baseUrl}}/api/users/me
+Authorization: Bearer {{loginMatti.response.body.$.token}}
+
+### 16. Profile without a token -> 401
+GET {{baseUrl}}/api/users/me
+
+### 17. User list as a customer -> 403
+GET {{baseUrl}}/api/users
+Authorization: Bearer {{loginMatti.response.body.$.token}}
+
+### 18. User list as admin -> 200
+GET {{baseUrl}}/api/users
+Authorization: Bearer {{loginAdmin.response.body.$.token}}
+
+### 19. Create a bike without a token -> 401
 POST {{baseUrl}}/api/bikes
 Content-Type: application/json
 
 {
   "model": "Kona Dew",
   "type": "City",
-  "pricePerHour": 4.50
+  "pricePerHour": 4.50,
+  "stationId": 2
 }
 
-### 6. Create with invalid data -> 400
+### 20. Create a bike as a customer -> 403
 POST {{baseUrl}}/api/bikes
+Authorization: Bearer {{loginMatti.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "model": "Kona Dew",
+  "type": "City",
+  "pricePerHour": 4.50,
+  "stationId": 2
+}
+
+### 21. Create a bike as admin -> 201, id 6
+POST {{baseUrl}}/api/bikes
+Authorization: Bearer {{loginAdmin.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "model": "Kona Dew",
+  "type": "City",
+  "pricePerHour": 4.50,
+  "stationId": 2
+}
+
+### 22. Create a bike with invalid data -> 400
+POST {{baseUrl}}/api/bikes
+Authorization: Bearer {{loginAdmin.response.body.$.token}}
 Content-Type: application/json
 
 {
@@ -32,143 +150,185 @@ Content-Type: application/json
   "pricePerHour": 0
 }
 
-### 7. Update a bike -> 200
-PUT {{baseUrl}}/api/bikes/1
-Content-Type: application/json
-
-{
-  "model": "Helkama Jopo",
-  "type": "City",
-  "pricePerHour": 3.50,
-  "inMaintenance": false
-}
-
-### 8. Put a bike into maintenance -> 200, status "InMaintenance"
+### 23. Put bike 2 into maintenance -> 200, InMaintenance
 PUT {{baseUrl}}/api/bikes/2
+Authorization: Bearer {{loginAdmin.response.body.$.token}}
 Content-Type: application/json
 
 {
   "model": "Trek Marlin 7",
   "type": "Mountain",
   "pricePerHour": 5.00,
-  "inMaintenance": true
+  "inMaintenance": true,
+  "stationId": 1
 }
 
-### 9. Update a bike that doesn't exist -> 404
-PUT {{baseUrl}}/api/bikes/999
+### 24. Soft delete bike 6 -> 204
+DELETE {{baseUrl}}/api/bikes/6
+Authorization: Bearer {{loginAdmin.response.body.$.token}}
+
+### 25. Deleted bike -> 404 BikeNotFound
+GET {{baseUrl}}/api/bikes/6
+
+### 26. Start a rental without a token -> 401
+POST {{baseUrl}}/api/rentals
 Content-Type: application/json
 
 {
-  "model": "Ghost",
+  "bikeId": 1
+}
+
+### 27. Matti rents bike 1 -> 201, Active, pickupStationId 1
+POST {{baseUrl}}/api/rentals
+Authorization: Bearer {{loginMatti.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "bikeId": 1
+}
+
+### 28. Matti tries a second rental -> 409 UserHasActiveRental
+POST {{baseUrl}}/api/rentals
+Authorization: Bearer {{loginMatti.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "bikeId": 4
+}
+
+### 29. Liisa tries the rented bike -> 409 BikeNotAvailable
+POST {{baseUrl}}/api/rentals
+Authorization: Bearer {{loginLiisa.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "bikeId": 1
+}
+
+### 30. Liisa tries a bike in maintenance -> 409 BikeNotAvailable
+POST {{baseUrl}}/api/rentals
+Authorization: Bearer {{loginLiisa.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "bikeId": 5
+}
+
+### 31. Liisa tries an unknown bike -> 404 BikeNotFound
+POST {{baseUrl}}/api/rentals
+Authorization: Bearer {{loginLiisa.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "bikeId": 999
+}
+
+### 32. Bike 1 now shows Rented
+GET {{baseUrl}}/api/bikes/1
+
+### 33. Filter rented bikes -> bike 1
+GET {{baseUrl}}/api/bikes?status=Rented
+
+### 34. Rented bike into maintenance -> 409 BikeRented
+PUT {{baseUrl}}/api/bikes/1
+Authorization: Bearer {{loginAdmin.response.body.$.token}}
+Content-Type: application/json
+
+{
+  "model": "Helkama Jopo",
   "type": "City",
-  "pricePerHour": 1.00,
-  "inMaintenance": false
+  "pricePerHour": 3.50,
+  "inMaintenance": true,
+  "stationId": 1
 }
 
-### 10. Soft delete a bike -> 204
-DELETE {{baseUrl}}/api/bikes/3
+### 35. Delete the rented bike -> 409 BikeRented
+DELETE {{baseUrl}}/api/bikes/1
+Authorization: Bearer {{loginAdmin.response.body.$.token}}
 
-### 11. Get the deleted bike -> 404
-GET {{baseUrl}}/api/bikes/3
-
-### 12. Delete it again -> 404
-DELETE {{baseUrl}}/api/bikes/3
-
-### 13. List users (for finding user ids)
-GET {{baseUrl}}/api/users
-
-  
-### 14. Start a rental: user 1 rents bike 1 -> 201, status "Active"
-POST {{baseUrl}}/api/rentals
-Content-Type: application/json
-
-{
-  "bikeId": 1,
-  "userId": 1
-}
-
-### 15. Same user tries a second rental -> 409 UserHasActiveRental
-POST {{baseUrl}}/api/rentals
-Content-Type: application/json
-
-{
-  "bikeId": 4,
-  "userId": 1
-}
-
-### 16. Another user tries the rented bike -> 409 BikeNotAvailable
-POST {{baseUrl}}/api/rentals
-Content-Type: application/json
-
-{
-  "bikeId": 1,
-  "userId": 2
-}
-
-### 17. Rent a bike in maintenance (bike 5) -> 409 BikeNotAvailable
-POST {{baseUrl}}/api/rentals
-Content-Type: application/json
-
-{
-  "bikeId": 5,
-  "userId": 2
-}
-
-### 18. Rent a bike that doesn't exist -> 404 BikeNotFound
-POST {{baseUrl}}/api/rentals
-Content-Type: application/json
-
-{
-  "bikeId": 999,
-  "userId": 2
-}
-
-### 19. List all rentals
+### 36. Matti's rentals -> 1 rental
 GET {{baseUrl}}/api/rentals
+Authorization: Bearer {{loginMatti.response.body.$.token}}
 
-### 20. Get one rental (use the id from #14's response)
+### 37. Liisa's rentals -> empty list
+GET {{baseUrl}}/api/rentals
+Authorization: Bearer {{loginLiisa.response.body.$.token}}
+
+### 38. Liisa opens Matti's rental -> 404 RentalNotFound (S5)
 GET {{baseUrl}}/api/rentals/1
+Authorization: Bearer {{loginLiisa.response.body.$.token}}
 
-### 21. Return the rental -> 200, status "Completed", totalPrice 3.50
+### 39. Liisa returns Matti's rental -> 404 RentalNotFound (S5)
 POST {{baseUrl}}/api/rentals/1/return
+Authorization: Bearer {{loginLiisa.response.body.$.token}}
 
-### 22. Return it again -> 409 RentalNotActive
+### 40. Admin sees all rentals -> includes rental 1
+GET {{baseUrl}}/api/rentals
+Authorization: Bearer {{loginAdmin.response.body.$.token}}
+
+### 41. Matti returns to station 3 -> 200, Completed, totalPrice 3.5, returnStationId 3
 POST {{baseUrl}}/api/rentals/1/return
+Authorization: Bearer {{loginMatti.response.body.$.token}}
+Content-Type: application/json
 
-### 23. Rental that doesn't exist -> 404 RentalNotFound
+{
+  "returnStationId": 3
+}
+
+### 42. Return again -> 409 RentalNotActive
+POST {{baseUrl}}/api/rentals/1/return
+Authorization: Bearer {{loginMatti.response.body.$.token}}
+
+### 43. Bike 1 is Available at station 3
+GET {{baseUrl}}/api/bikes/1
+
+### 44. Unknown rental -> 404 RentalNotFound
 GET {{baseUrl}}/api/rentals/999
+Authorization: Bearer {{loginMatti.response.body.$.token}}
 
-### 24. User 2 rents bike 4 -> 201 (note the rental id in the response)
-POST {{baseUrl}}/api/rentals
+### 45. Create a station as a customer -> 403
+POST {{baseUrl}}/api/stations
+Authorization: Bearer {{loginMatti.response.body.$.token}}
 Content-Type: application/json
 
 {
-  "bikeId": 4,
-  "userId": 2
+  "name": "Testi",
+  "address": "Testikatu 1, 65100 Vaasa",
+  "latitude": 63.09,
+  "longitude": 21.61
 }
 
-### 25. Bike 4 now shows "Rented"
-GET {{baseUrl}}/api/bikes/4
-
-### 26. Try to put the rented bike into maintenance -> 409 BikeRented (S7)
-PUT {{baseUrl}}/api/bikes/4
+### 46. Create a station as admin -> 201, id 4
+POST {{baseUrl}}/api/stations
+Authorization: Bearer {{loginAdmin.response.body.$.token}}
 Content-Type: application/json
 
 {
-  "model": "Puky ZL 16",
-  "type": "Kids",
-  "pricePerHour": 2.00,
-  "inMaintenance": true
+  "name": "Keskussairaala",
+  "address": "Hietalahdenkatu 2-4, 65130 Vaasa",
+  "latitude": 63.0868,
+  "longitude": 21.5833
 }
 
-### 27. Try to delete the rented bike -> 409 BikeRented (S8)
-DELETE {{baseUrl}}/api/bikes/4
+### 47. Update the station -> 200
+PUT {{baseUrl}}/api/stations/4
+Authorization: Bearer {{loginAdmin.response.body.$.token}}
+Content-Type: application/json
 
-### 28. The bike list shows bike 4 as "Rented"
-GET {{baseUrl}}/api/bikes
+{
+  "name": "Vaasan keskussairaala",
+  "address": "Hietalahdenkatu 2-4, 65130 Vaasa",
+  "latitude": 63.0868,
+  "longitude": 21.5833
+}
 
-### 29. Return the rental (use the id from #24's response) -> 200
-POST {{baseUrl}}/api/rentals/2/return
+### 48. Delete a station with bikes -> 409 StationHasBikes (S10)
+DELETE {{baseUrl}}/api/stations/3
+Authorization: Bearer {{loginAdmin.response.body.$.token}}
 
-### 30. Bike 4 is "Available" again
-GET {{baseUrl}}/api/bikes/4
+### 49. Delete an empty station -> 204
+DELETE {{baseUrl}}/api/stations/4
+Authorization: Bearer {{loginAdmin.response.body.$.token}}
+
+### 50. Deleted station -> 404 StationNotFound
+GET {{baseUrl}}/api/stations/4
