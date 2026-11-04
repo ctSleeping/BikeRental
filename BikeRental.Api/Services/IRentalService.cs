@@ -4,8 +4,8 @@ namespace BikeRental.Api.Services;
 
 public interface IRentalService
 {
-    Task<List<RentalDto>> GetAllAsync();
-    Task<RentalDto> GetByIdAsync(int id);
-    Task<RentalDto> StartAsync(CreateRentalDto dto);
-    Task<RentalDto> ReturnAsync(int id);
+    Task<List<RentalDto>> GetAllAsync(int userId, bool isAdmin);
+    Task<RentalDto> GetByIdAsync(int id, int userId, bool isAdmin);
+    Task<RentalDto> StartAsync(CreateRentalDto dto, int userId);
+    Task<RentalDto> ReturnAsync(int id, int userId);
 }

@@ -2,12 +2,9 @@
 
 namespace BikeRental.Api.Dtos;
 
+// The renting user is read from the JWT token, not from the request.
 public class CreateRentalDto
 {
     [Required]
     public int? BikeId { get; set; }
-
-    // No authentication yet, so the renting user is given in the request.
-    [Required]
-    public int? UserId { get; set; }
 }

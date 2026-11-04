@@ -1,5 +1,6 @@
 ﻿using BikeRental.Api.Dtos;
 using BikeRental.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BikeRental.Api.Controllers;
@@ -29,6 +30,7 @@ public class BikesController : ControllerBase
         return Ok(await _bikeService.GetByIdAsync(id));
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<ActionResult<BikeDto>> Create(CreateBikeDto dto)
     {
@@ -36,12 +38,14 @@ public class BikesController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
+    [Authorize]
     [HttpPut("{id:int}")]
     public async Task<ActionResult<BikeDto>> Update(int id, UpdateBikeDto dto)
     {
         return Ok(await _bikeService.UpdateAsync(id, dto));
     }
 
+    [Authorize]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

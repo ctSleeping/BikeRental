@@ -15,23 +15,30 @@ public class RentalService : IRentalService
         _context = context;
     }
 
-    public async Task<List<RentalDto>> GetAllAsync()
+    // Customers see their own rentals, admins see all.
+    public async Task<List<RentalDto>> GetAllAsync(int userId, bool isAdmin)
     {
-        var rentals = await _context.Rentals
-            .Include(r => r.Bike)
+        var query = _context.Rentals.Include(r => r.Bike).AsQueryable();
+
+        if (!isAdmin)
+        {
+            query = query.Where(r => r.UserId == userId);
+        }
+
+        var rentals = await query
             .OrderByDescending(r => r.StartUtc)
             .ToListAsync();
 
         return rentals.Select(ToDto).ToList();
     }
 
-    public async Task<RentalDto> GetByIdAsync(int id)
+    public async Task<RentalDto> GetByIdAsync(int id, int userId, bool isAdmin)
     {
-        var rental = await FindRentalAsync(id);
+        var rental = await FindRentalAsync(id, userId, isAdmin);
         return ToDto(rental);
     }
 
-    public async Task<RentalDto> StartAsync(CreateRentalDto dto)
+    public async Task<RentalDto> StartAsync(CreateRentalDto dto, int userId)
     {
         // S1: the bike must exist and not be deleted.
         var bike = await _context.Bikes
@@ -56,12 +63,11 @@ public class RentalService : IRentalService
             throw new ConflictApiException("BikeNotAvailable", "Bike is already rented.");
         }
 
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Id == dto.UserId);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
         if (user == null)
         {
-            throw new NotFoundApiException("UserNotFound", $"User with id {dto.UserId} was not found.");
+            throw new NotFoundApiException("UserNotFound", $"User with id {userId} was not found.");
         }
 
         // S3: a user can have only one active rental.
@@ -89,9 +95,10 @@ public class RentalService : IRentalService
         return ToDto(rental);
     }
 
-    public async Task<RentalDto> ReturnAsync(int id)
+    // S5: only the owner can return a rental.
+    public async Task<RentalDto> ReturnAsync(int id, int userId)
     {
-        var rental = await FindRentalAsync(id);
+        var rental = await FindRentalAsync(id, userId, isAdmin: false);
 
         // S4: only an active rental can be returned.
         if (rental.EndUtc != null)
@@ -115,11 +122,12 @@ public class RentalService : IRentalService
         return billableHours * hourlyPrice;
     }
 
-    private async Task<Rental> FindRentalAsync(int id)
+    // S5: another user's rental is treated as not found.
+    private async Task<Rental> FindRentalAsync(int id, int userId, bool isAdmin)
     {
         var rental = await _context.Rentals
             .Include(r => r.Bike)
-            .FirstOrDefaultAsync(r => r.Id == id);
+            .FirstOrDefaultAsync(r => r.Id == id && (isAdmin || r.UserId == userId));
 
         if (rental == null)
         {
