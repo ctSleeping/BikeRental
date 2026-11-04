@@ -30,7 +30,7 @@ public class BikesController : ControllerBase
         return Ok(await _bikeService.GetByIdAsync(id));
     }
 
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<BikeDto>> Create(CreateBikeDto dto)
     {
@@ -38,14 +38,14 @@ public class BikesController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:int}")]
     public async Task<ActionResult<BikeDto>> Update(int id, UpdateBikeDto dto)
     {
         return Ok(await _bikeService.UpdateAsync(id, dto));
     }
 
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
