@@ -87,9 +87,12 @@ namespace BikeRental.Api
             // Allows the frontend dev server to call the API from the browser.
             builder.Services.AddCors(options =>
                 options.AddPolicy("Frontend", policy => policy
-                    .WithOrigins("http://localhost:5173")
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()));
+                .WithOrigins(
+                    "http://localhost:5173",
+                    "http://localhost:5500",
+                    "http://127.0.0.1:5500")
+                .AllowAnyHeader()
+                .AllowAnyMethod()));
 
             var app = builder.Build();
 
