@@ -27,6 +27,13 @@ namespace BikeRental.Api
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IRentalService, RentalService>();
 
+            // Allows the frontend dev server to call the API from the browser.
+            builder.Services.AddCors(options =>
+                options.AddPolicy("Frontend", policy => policy
+                    .WithOrigins("http://localhost:5173")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()));
+
             var app = builder.Build();
 
             // Applies pending migrations on startup, so the database and
@@ -46,7 +53,7 @@ namespace BikeRental.Api
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+            app.UseCors("Frontend");
 
             app.UseAuthorization();
 
