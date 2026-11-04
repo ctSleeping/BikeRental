@@ -16,7 +16,6 @@ public class BikesController : ControllerBase
         _bikeService = bikeService;
     }
 
-    [HttpGet]
     // GET /api/bikes?type=City&status=Available&stationId=1&page=1&pageSize=10
     [HttpGet]
     public async Task<ActionResult<PagedResult<BikeDto>>> GetAll([FromQuery] BikeQuery query)
