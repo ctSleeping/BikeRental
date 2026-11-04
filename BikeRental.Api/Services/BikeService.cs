@@ -58,12 +58,15 @@ public class BikeService : IBikeService
 
     public async Task<BikeDto> CreateAsync(CreateBikeDto dto)
     {
+        await EnsureStationExistsAsync(dto.StationId);
+
         var bike = new Bike
         {
             Model = dto.Model,
             Type = dto.Type!.Value,
             PricePerHour = dto.PricePerHour,
-            InMaintenance = false
+            InMaintenance = false,
+            StationId = dto.StationId
         };
 
         _context.Bikes.Add(bike);
@@ -83,10 +86,13 @@ public class BikeService : IBikeService
             throw new ConflictApiException("BikeRented", "A rented bike cannot be set to maintenance.");
         }
 
+        await EnsureStationExistsAsync(dto.StationId);
+
         bike.Model = dto.Model;
         bike.Type = dto.Type!.Value;
         bike.PricePerHour = dto.PricePerHour;
         bike.InMaintenance = dto.InMaintenance;
+        bike.StationId = dto.StationId;
 
         await _context.SaveChangesAsync();
 
@@ -128,6 +134,15 @@ public class BikeService : IBikeService
         return _context.Rentals.AnyAsync(r => r.BikeId == bikeId && r.EndUtc == null);
     }
 
+    // A station id is optional, but if given it must exist.
+    private async Task EnsureStationExistsAsync(int? stationId)
+    {
+        if (stationId != null && !await _context.Stations.AnyAsync(s => s.Id == stationId))
+        {
+            throw new NotFoundApiException("StationNotFound", $"Station with id {stationId} was not found.");
+        }
+    }
+
     // Status priority: InMaintenance, then Rented, otherwise Available.
     private static BikeDto ToDto(Bike bike, bool isRented)
     {
@@ -146,7 +161,8 @@ public class BikeService : IBikeService
             Model = bike.Model,
             Type = bike.Type,
             PricePerHour = bike.PricePerHour,
-            Status = status
+            Status = status,
+            StationId = bike.StationId
         };
     }
 }

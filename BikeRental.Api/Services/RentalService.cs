@@ -86,7 +86,8 @@ public class RentalService : IRentalService
             StartUtc = DateTime.UtcNow,
             EndUtc = null,
             HourlyPrice = bike.PricePerHour,
-            TotalPrice = null
+            TotalPrice = null,
+            PickupStationId = bike.StationId   // read from the bike, not from the request
         };
 
         _context.Rentals.Add(rental);
@@ -96,7 +97,7 @@ public class RentalService : IRentalService
     }
 
     // S5: only the owner can return a rental.
-    public async Task<RentalDto> ReturnAsync(int id, int userId)
+    public async Task<RentalDto> ReturnAsync(int id, int userId, int? returnStationId)
     {
         var rental = await FindRentalAsync(id, userId, isAdmin: false);
 
@@ -106,9 +107,22 @@ public class RentalService : IRentalService
             throw new ConflictApiException("RentalNotActive", "Rental is not active.");
         }
 
+        if (returnStationId != null && !await _context.Stations.AnyAsync(s => s.Id == returnStationId))
+        {
+            throw new NotFoundApiException("StationNotFound", $"Station with id {returnStationId} was not found.");
+        }
+
+        // Without a chosen station, the bike goes back to its pickup station.
+        var stationId = returnStationId ?? rental.PickupStationId;
+
         rental.EndUtc = DateTime.UtcNow;
         rental.TotalPrice = CalculatePrice(rental.StartUtc, rental.EndUtc.Value, rental.HourlyPrice);
+        rental.ReturnStationId = stationId;
 
+        // The bike moves to the return station.
+        rental.Bike!.StationId = stationId;
+
+        // All changes are saved together.
         await _context.SaveChangesAsync();
 
         return ToDto(rental);
@@ -151,7 +165,9 @@ public class RentalService : IRentalService
             EndUtc = rental.EndUtc,
             HourlyPrice = rental.HourlyPrice,
             TotalPrice = rental.TotalPrice,
-            Status = rental.EndUtc == null ? "Active" : "Completed"
+            Status = rental.EndUtc == null ? "Active" : "Completed",
+            PickupStationId = rental.PickupStationId,
+            ReturnStationId = rental.ReturnStationId
         };
     }
 }

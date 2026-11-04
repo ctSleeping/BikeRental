@@ -11,4 +11,6 @@ public class BikeDto
 
     // Available, Rented or InMaintenance. Computed, not stored.
     public string Status { get; set; } = string.Empty;
+
+    public int? StationId { get; set; }
 }

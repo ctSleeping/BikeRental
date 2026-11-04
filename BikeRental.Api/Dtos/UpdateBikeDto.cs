@@ -17,4 +17,6 @@ public class UpdateBikeDto
 
     // Status cannot be set directly (S6); only the maintenance flag can be changed.
     public bool InMaintenance { get; set; }
+
+    public int? StationId { get; set; }
 }

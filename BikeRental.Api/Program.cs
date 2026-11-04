@@ -60,6 +60,7 @@ namespace BikeRental.Api
             builder.Services.AddScoped<IRentalService, RentalService>();
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IStationService, StationService>();
 
             // JWT authentication. The key comes from user-secrets.
             var jwtKey = builder.Configuration["Jwt:Key"]

@@ -11,5 +11,9 @@ public class Bike
     // Set when the bike is soft-deleted; null for active bikes.
     public DateTime? DeletedUtc { get; set; }
 
+    // The station where the bike is, or was picked up from while rented.
+    public int? StationId { get; set; }
+    public Station? Station { get; set; }
+
     public ICollection<Rental> Rentals { get; set; } = new List<Rental>();
 }

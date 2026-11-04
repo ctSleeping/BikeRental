@@ -14,4 +14,6 @@ public class CreateBikeDto
 
     [Range(0.01, 1000)]
     public decimal PricePerHour { get; set; }
+
+    public int? StationId { get; set; }
 }

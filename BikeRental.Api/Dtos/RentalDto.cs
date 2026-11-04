@@ -11,6 +11,9 @@ public class RentalDto
 
     // Active or Completed, based on EndUtc.
     public string Status { get; set; } = string.Empty;
+
+    public int? PickupStationId { get; set; }
+    public int? ReturnStationId { get; set; }
 }
 
 public class BikeSummaryDto

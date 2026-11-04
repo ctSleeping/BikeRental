@@ -13,16 +13,29 @@ public class AppDbContext : DbContext
     public DbSet<Bike> Bikes => Set<Bike>();
     public DbSet<User> Users => Set<User>();
     public DbSet<Rental> Rentals => Set<Rental>();
+    public DbSet<Station> Stations => Set<Station>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Station>(station =>
+        {
+            station.Property(s => s.Name).IsRequired().HasMaxLength(100);
+            station.Property(s => s.Address).IsRequired().HasMaxLength(200);
+        });
 
         modelBuilder.Entity<Bike>(bike =>
         {
             bike.Property(b => b.Model).IsRequired().HasMaxLength(100);
             bike.Property(b => b.Type).HasConversion<string>().HasMaxLength(20);
             bike.Property(b => b.PricePerHour).HasPrecision(10, 2);
+
+            // One station has many bikes. Deleting a station clears StationId.
+            bike.HasOne(b => b.Station)
+                .WithMany(s => s.Bikes)
+                .HasForeignKey(b => b.StationId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<User>(user =>
@@ -50,14 +63,31 @@ public class AppDbContext : DbContext
                 .WithMany(u => u.Rentals)
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Pickup and return stations. Deleting a station clears these ids.
+            rental.HasOne(r => r.PickupStation)
+                .WithMany()
+                .HasForeignKey(r => r.PickupStationId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            rental.HasOne(r => r.ReturnStation)
+                .WithMany()
+                .HasForeignKey(r => r.ReturnStationId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
+        modelBuilder.Entity<Station>().HasData(
+            new Station { Id = 1, Name = "Kauppatori", Address = "Kauppapuistikko, 65100 Vaasa", Latitude = 63.0960, Longitude = 21.6158 },
+            new Station { Id = 2, Name = "VAMK Palosaari", Address = "Wolffintie 30, 65200 Vaasa", Latitude = 63.1046, Longitude = 21.5935 },
+            new Station { Id = 3, Name = "Rautatieasema", Address = "Hovioikeudenpuistikko 26, 65100 Vaasa", Latitude = 63.0946, Longitude = 21.6209 }
+        );
+
         modelBuilder.Entity<Bike>().HasData(
-            new Bike { Id = 1, Model = "Helkama Jopo", Type = BikeType.City, PricePerHour = 3.50m },
-            new Bike { Id = 2, Model = "Trek Marlin 7", Type = BikeType.Mountain, PricePerHour = 5.00m },
-            new Bike { Id = 3, Model = "Tunturi E-Bike", Type = BikeType.Electric, PricePerHour = 8.00m },
-            new Bike { Id = 4, Model = "Puky ZL 16", Type = BikeType.Kids, PricePerHour = 2.00m },
-            new Bike { Id = 5, Model = "Cannondale Quick", Type = BikeType.City, PricePerHour = 4.00m, InMaintenance = true }
+            new Bike { Id = 1, Model = "Helkama Jopo", Type = BikeType.City, PricePerHour = 3.50m, StationId = 1 },
+            new Bike { Id = 2, Model = "Trek Marlin 7", Type = BikeType.Mountain, PricePerHour = 5.00m, StationId = 1 },
+            new Bike { Id = 3, Model = "Tunturi E-Bike", Type = BikeType.Electric, PricePerHour = 8.00m, StationId = 2 },
+            new Bike { Id = 4, Model = "Puky ZL 16", Type = BikeType.Kids, PricePerHour = 2.00m, StationId = 2 },
+            new Bike { Id = 5, Model = "Cannondale Quick", Type = BikeType.City, PricePerHour = 4.00m, StationId = 3, InMaintenance = true }
         );
 
         // Seed users. Password for all: Password123!

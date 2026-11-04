@@ -20,4 +20,11 @@ public class Rental
 
     // Calculated when the rental is returned.
     public decimal? TotalPrice { get; set; }
+
+    public int? PickupStationId { get; set; }
+    public Station? PickupStation { get; set; }
+
+    // Null while the rental is active.
+    public int? ReturnStationId { get; set; }
+    public Station? ReturnStation { get; set; }
 }

@@ -38,12 +38,17 @@ namespace BikeRental.Api.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("StationId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("StationId");
 
                     b.ToTable("Bikes");
 
@@ -54,6 +59,7 @@ namespace BikeRental.Api.Migrations
                             InMaintenance = false,
                             Model = "Helkama Jopo",
                             PricePerHour = 3.50m,
+                            StationId = 1,
                             Type = "City"
                         },
                         new
@@ -62,6 +68,7 @@ namespace BikeRental.Api.Migrations
                             InMaintenance = false,
                             Model = "Trek Marlin 7",
                             PricePerHour = 5.00m,
+                            StationId = 1,
                             Type = "Mountain"
                         },
                         new
@@ -70,6 +77,7 @@ namespace BikeRental.Api.Migrations
                             InMaintenance = false,
                             Model = "Tunturi E-Bike",
                             PricePerHour = 8.00m,
+                            StationId = 2,
                             Type = "Electric"
                         },
                         new
@@ -78,6 +86,7 @@ namespace BikeRental.Api.Migrations
                             InMaintenance = false,
                             Model = "Puky ZL 16",
                             PricePerHour = 2.00m,
+                            StationId = 2,
                             Type = "Kids"
                         },
                         new
@@ -86,6 +95,7 @@ namespace BikeRental.Api.Migrations
                             InMaintenance = true,
                             Model = "Cannondale Quick",
                             PricePerHour = 4.00m,
+                            StationId = 3,
                             Type = "City"
                         });
                 });
@@ -106,6 +116,12 @@ namespace BikeRental.Api.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("PickupStationId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ReturnStationId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("StartUtc")
                         .HasColumnType("TEXT");
 
@@ -120,9 +136,66 @@ namespace BikeRental.Api.Migrations
 
                     b.HasIndex("BikeId");
 
+                    b.HasIndex("PickupStationId");
+
+                    b.HasIndex("ReturnStationId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("Rentals");
+                });
+
+            modelBuilder.Entity("BikeRental.Api.Models.Station", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("REAL");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Stations");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Address = "Kauppapuistikko, 65100 Vaasa",
+                            Latitude = 63.095999999999997,
+                            Longitude = 21.6158,
+                            Name = "Kauppatori"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Address = "Wolffintie 30, 65200 Vaasa",
+                            Latitude = 63.104599999999998,
+                            Longitude = 21.593499999999999,
+                            Name = "VAMK Palosaari"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Address = "Hovioikeudenpuistikko 26, 65100 Vaasa",
+                            Latitude = 63.0946,
+                            Longitude = 21.620899999999999,
+                            Name = "Rautatieasema"
+                        });
                 });
 
             modelBuilder.Entity("BikeRental.Api.Models.User", b =>
@@ -192,6 +265,16 @@ namespace BikeRental.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BikeRental.Api.Models.Bike", b =>
+                {
+                    b.HasOne("BikeRental.Api.Models.Station", "Station")
+                        .WithMany("Bikes")
+                        .HasForeignKey("StationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Station");
+                });
+
             modelBuilder.Entity("BikeRental.Api.Models.Rental", b =>
                 {
                     b.HasOne("BikeRental.Api.Models.Bike", "Bike")
@@ -199,6 +282,16 @@ namespace BikeRental.Api.Migrations
                         .HasForeignKey("BikeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("BikeRental.Api.Models.Station", "PickupStation")
+                        .WithMany()
+                        .HasForeignKey("PickupStationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("BikeRental.Api.Models.Station", "ReturnStation")
+                        .WithMany()
+                        .HasForeignKey("ReturnStationId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("BikeRental.Api.Models.User", "User")
                         .WithMany("Rentals")
@@ -208,12 +301,21 @@ namespace BikeRental.Api.Migrations
 
                     b.Navigation("Bike");
 
+                    b.Navigation("PickupStation");
+
+                    b.Navigation("ReturnStation");
+
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("BikeRental.Api.Models.Bike", b =>
                 {
                     b.Navigation("Rentals");
+                });
+
+            modelBuilder.Entity("BikeRental.Api.Models.Station", b =>
+                {
+                    b.Navigation("Bikes");
                 });
 
             modelBuilder.Entity("BikeRental.Api.Models.User", b =>
